@@ -1,18 +1,19 @@
 # %%
-import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+import numpy as np # type: ignore 
+import pandas as pd # type: ignore
+import seaborn as sns # type: ignore
+import matplotlib.pyplot as plt # type: ignore # type: ignore
 
 # %%
-from sklearn.model_selection import train_test_split
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.metrics import r2_score,mean_absolute_error
-from sklearn.linear_model import LinearRegression,Ridge
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor,ExtraTreesRegressor
+from sklearn.model_selection import train_test_split # type: ignore
+from sklearn.compose import ColumnTransformer # type: ignore # type: ignore
+from sklearn.pipeline import Pipeline # type: ignore
+from sklearn.preprocessing import OneHotEncoder # type: ignore
+from sklearn.metrics import r2_score,mean_absolute_error # type: ignore
+from sklearn.linear_model import LinearRegression,Ridge # type: ignore
+from sklearn.tree import DecisionTreeRegressor # type: ignore
+from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor,ExtraTreesRegressor # type: ignore
+from xgboost import XGBRegressor # type: ignore
 
 # %%
 df = pd.read_csv('laptop_data.csv')
@@ -67,7 +68,7 @@ plt.show()
 sns.distplot(df['Inches'])
 
 # %%
-sns.scatterplot(x=df['Inches'],y=df['Price'])
+sns.barplot(x=df['Inches'],y=df['Price'])
 
 # %%
 df['ScreenResolution'].value_counts()
@@ -560,5 +561,113 @@ plt.title('Gradient Boosting Regressor')
 plt.grid()
 plt.tight_layout()
 plt.show()
+
+# %%
+step1 = ColumnTransformer(transformers=[
+    ('col_tnf', OneHotEncoder(sparse_output=False, drop='first'), [0, 1, 7, 10, 11])
+], remainder='passthrough')
+
+# Define the pipeline with bootstrap=True
+step2 = ExtraTreesRegressor(
+    n_estimators=100,
+    random_state=3,
+    bootstrap=True,         # Enable bootstrapping
+    max_samples=0.5,        # Now max_samples can be used
+    max_features=0.75,
+    max_depth=15
+)
+
+# Create a pipeline
+pipe = Pipeline([
+    ('step1', step1),
+    ('step2', step2)
+])
+
+# Fit the pipeline on the training data
+pipe.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = pipe.predict(X_test)
+
+# Evaluate the model
+print('R² score:', r2_score(y_test, y_pred))
+print('Mean Absolute Error:', mean_absolute_error(y_test, y_pred))
+
+
+# %%
+# Plot graph of true vs predicted values
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred, alpha=0.6, color='b', label='Predicted vs Actual')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2, label='Perfect Fit')
+
+# Labels and title
+plt.xlabel('True Values (Price)')
+plt.ylabel('Predicted Values (Price)')
+plt.title('True vs Predicted Values: ExtraTreesRegressor')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# %%
+# Define feature and target variables
+X = df.drop(columns=['Price'])  # Replace 'Price' with your target variable
+y = df['Price']  # Your target variable
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create ColumnTransformer for preprocessing
+step1 = ColumnTransformer(
+    transformers=[
+        ('col_tnf', OneHotEncoder(sparse_output=False, drop='first'), [0, 1, 7, 10, 11])  # Corrected the parameter name
+    ],
+    remainder='passthrough'
+)
+
+# Create XGBRegressor model
+step2 = XGBRegressor(n_estimators=45, max_depth=5, learning_rate=0.5)
+
+# Create the pipeline
+pipe = Pipeline([
+    ('step1', step1),
+    ('step2', step2)
+])
+
+# Fit the pipeline on the training data
+pipe.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = pipe.predict(X_test)
+
+# Evaluate the model
+print('R² score:', r2_score(y_test, y_pred))
+print('Mean Absolute Error:', mean_absolute_error(y_test, y_pred))
+
+# %%
+# Plotting the graph
+plt.figure(figsize=(10, 6))
+
+# Scatter plot of True vs Predicted values
+plt.scatter(y_test, y_pred, alpha=0.7, color='b')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=3)  # Line for perfect predictions
+
+# Add labels and title
+plt.xlabel('True Values (Price)')
+plt.ylabel('Predicted Values (Price)')
+plt.title('True vs Predicted Values for XGBRegressor')
+
+plt.show()
+
+# %%
+import pickle
+
+pickle.dump(df,open('df.pkl','wb'))
+pickle.dump(pipe,open('pipe.pkl','wb'))
+
+# %%
+df
+
+# %%
+X_train
 
 
