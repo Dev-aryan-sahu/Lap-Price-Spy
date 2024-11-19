@@ -81,5 +81,3 @@ The performance of each model is evaluated based on metrics like Mean Absolute E
 
 Results
 
-The model achieves an MAE of X on the test dataset.
-Further optimizations and feature engineering are planned to improve the performance.
