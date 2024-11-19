@@ -70,4 +70,3 @@ Results
 Model Performance: The project achieves an MAE of X and an RMSE of Y on the test dataset.
 Future Work: Plans for further optimizations include refining feature engineering, exploring additional models, and enhancing the user interface for improved usability.
 Contributing
-Contributions are welcome! If you have suggestions, bug fixes, or new features to add, feel free to fork the repository and create a pull request. Please ensure to follow the project's coding standards and write tests for new features.
